@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Belleza - Tạo bài viết mới" />
+  <meta name="theme-color" content="#6200ea" />
+  <title>Thêm bài viết mới - Belleza</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>" />
+</head>
+<body>
+  <header>
+    <h1>Thêm bài viết mới</h1>
+  </header>
+  
+  <main>
+    <form id="postForm" class="post-form fade-in">
+      <div class="form-group">
+        <input type="text" name="title" placeholder="Tiêu đề" required autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <textarea name="content" placeholder="Nội dung bài viết..." required></textarea>
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn">Đăng bài</button>
+      </div>
+    </form>
+    
+    <div class="navigation-buttons">
+      <button onclick="goBack()" class="btn back-btn">Back</button>
+      <button onclick="goHome()" class="btn home-btn">Về trang chủ</button>
+    </div>
+    
+    <div id="status-message" class="status-message"></div>
+  </main>
+  
+  <script>
+    function goBack() {
+      window.history.back();
+    }
+    
+    function goHome() {
+      window.location.href = '/';
+    }
+    
+    function showMessage(message, isError = false) {
+      const statusEl = document.getElementById('status-message');
+      statusEl.textContent = message;
+      statusEl.className = isError ? 'status-message error' : 'status-message success';
+      statusEl.style.display = 'block';
+      
+      // Scroll to message
+      statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      if (!isError) {
+        setTimeout(() => {
+          statusEl.style.display = 'none';
+        }, 3000);
+      }
+    }
+  
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('postForm');
+      
+      // Focus on title input when page loads
+      setTimeout(() => {
+        document.querySelector('input[name="title"]').focus();
+      }, 100);
+      
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Đang đăng...';
+        submitBtn.classList.add('loading');
+        
+        const formData = new FormData(this);
+        const title = formData.get('title').trim();
+        const content = formData.get('content').trim();
+        
+        // Simple validation
+        if (title.length < 3) {
+          showMessage('Tiêu đề phải có ít nhất 3 ký tự', true);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Đăng bài';
+          return;
+        }
+        
+        if (content.length < 10) {
+          showMessage('Nội dung phải có ít nhất 10 ký tự', true);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Đăng bài';
+          return;
+        }
+        
+        fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content })
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('Có lỗi xảy ra khi đăng bài');
+          }
+          return res.json();
+        })
+        .then((data) => {
+          showMessage('Đăng bài thành công! Đang chuyển hướng...');
+          setTimeout(() => {
+            window.location.href = `/detail/${data.id || ''}`;
+          }, 1500);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showMessage(error.message || 'Đã xảy ra lỗi khi đăng bài', true);
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Đăng bài';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

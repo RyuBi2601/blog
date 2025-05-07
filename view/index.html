@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Belleza - Nền tảng chia sẻ bài viết đơn giản và hiệu quả" />
+  <meta name="theme-color" content="#6200ea" />
+  <title>Belleza - Trang chủ</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>" />
+</head>
+<body>
+  <header>
+    <h1>Danh sách bài viết</h1>
+    <a href="/create" class="btn">+ Thêm bài viết</a>
+  </header>
+  
+  <main>
+    <div id="posts" class="post-list">
+      <div class="loading">Đang tải bài viết...</div>
+    </div>
+  </main>
+  
+  <script src="/js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/api/posts')
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('Không thể kết nối với máy chủ');
+          }
+          return res.json();
+        })
+        .then(data => {
+          const container = document.getElementById('posts');
+          container.innerHTML = '';
+          
+          if (data.length === 0) {
+            container.innerHTML = `
+              <div class="no-posts fade-in">
+                <p>Chưa có bài viết nào. Hãy thêm bài viết mới!</p>
+              </div>
+            `;
+          } else {
+            data.forEach((post, index) => {
+              const el = document.createElement('div');
+              el.className = 'post-item fade-in';
+              el.style.animationDelay = `${index * 0.1}s`;
+              el.innerHTML = `
+                <h3><a href="/detail/${post.id}" class="animated-link">${post.title}</a></h3>
+                <p class="post-date">${new Date(post.created_at).toLocaleString()}</p>
+              `;
+              container.appendChild(el);
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching posts:', error);
+          document.getElementById('posts').innerHTML = `
+            <div class="error fade-in">
+              <p>${error.message || 'Không thể tải bài viết. Vui lòng thử lại sau.'}</p>
+            </div>
+          `;
+        });
+    });
+  </script>
+</body>
+</html>

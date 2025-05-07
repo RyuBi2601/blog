@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Belleza - Xem chi tiết bài viết" />
+  <meta name="theme-color" content="#6200ea" />
+  <title>Chi tiết bài viết - Belleza</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>" />
+</head>
+<body>
+  <header>
+    <h1>Chi tiết bài viết</h1>
+  </header>
+  
+  <main>
+    <div id="detail" class="post-detail">
+      <div class="loading">Đang tải...</div>
+    </div>
+    
+    <div class="navigation-buttons">
+      <button onclick="goBack()" class="btn back-btn">Back</button>
+      <button onclick="goHome()" class="btn home-btn">Về trang chủ</button>
+    </div>
+  </main>
+  
+  <script>
+    function goBack() {
+      window.history.back();
+    }
+    
+    function goHome() {
+      window.location.href = '/';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const id = window.location.pathname.split('/').pop();
+      
+      fetch(`/api/posts/${id}`)
+        .then(res => {
+          if (!res.ok) {
+            if (res.status === 404) {
+              throw new Error('Không tìm thấy bài viết');
+            }
+            throw new Error('Có lỗi xảy ra khi tải bài viết');
+          }
+          return res.json();
+        })
+        .then(post => {
+          document.title = `${post.title} - Chi tiết bài viết`;
+          
+          const detail = document.getElementById('detail');
+          detail.innerHTML = `
+            <article class="fade-in">
+              <h2>${post.title}</h2>
+              <p class="post-date">${new Date(post.created_at).toLocaleString()}</p>
+              <div class="post-content">${post.content}</div>
+            </article>
+          `;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('detail').innerHTML = `
+            <div class="error fade-in">
+              <p>${error.message || 'Đã xảy ra lỗi khi tải bài viết'}</p>
+              <button onclick="goHome()" class="btn">Về trang chủ</button>
+            </div>
+          `;
+        });
+    });
+  </script>
+</body>
+</html>
