@@ -6,4 +6,5 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME, // Thay đổi thành tên cơ sở dữ liệu của bạn
 });
 
+
 module.exports = pool.promise();
